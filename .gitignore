@@ -1,0 +1,16 @@
+# Exclude files/folders in same directory as the .gitignore file
+/*
+
+# Permit some files
+!.gitignore
+!README.md
+
+# Exclude ALL GVIM Temp Files
+**.swl
+**.swm
+**.swo
+**.swp
+**.*~
+
+# Include Script Files
+!compare_lics.bash

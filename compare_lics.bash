@@ -112,7 +112,7 @@ echo ""
 echo "Expiry dates present in new licence: $new_lic"
 for exp_date in $(grep "FEATURE" $new_lic | awk '{print $5}' | sort | uniq)
 do
-  exp_date_cnt=`grep -c ${exp_date} ${new_lic}`
+  exp_date_cnt=`grep "FEATURE" $new_lic | awk '{print $5}' | grep -c ${exp_date}`
   echo "  $exp_date : ${exp_date_cnt} FEATURE lines"
 done
 
