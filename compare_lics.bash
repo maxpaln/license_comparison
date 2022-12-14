@@ -107,7 +107,7 @@ then
   echo "  All FEATURE lines remain present in new licence"
 fi
 
-# Report new licence expiry
+# Report Feature Lines Expiry Dates in New Licence
 echo ""
 echo "Expiry dates present in new licence: $new_lic"
 for exp_date in $(grep "FEATURE" $new_lic | awk '{print $5}' | sort | uniq)
@@ -115,6 +115,16 @@ do
   exp_date_cnt=`grep "FEATURE" $new_lic | awk '{print $5}' | grep -c ${exp_date}`
   echo "  $exp_date : ${exp_date_cnt} FEATURE lines"
 done
+
+# Report Feature Lines Version Number in New Licence
+echo ""
+echo "Version Numbers present in new licence: $new_lic"
+for version in $(grep "FEATURE" $new_lic | awk '{print $4}' | sort | uniq)
+do
+  version_num=`grep "FEATURE" $new_lic | awk '{print $4}' | grep -c ${version}`
+  echo "  $version : ${version_num} FEATURE lines"
+done
+
 
 # Clean Up
 rm -rf $tmp_dir
