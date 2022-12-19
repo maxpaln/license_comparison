@@ -107,15 +107,6 @@ then
   echo "  All FEATURE lines remain present in new licence"
 fi
 
-# Report Feature Lines Expiry Dates in New Licence
-echo ""
-echo "Expiry dates present in new licence: $new_lic"
-for exp_date in $(grep "FEATURE" $new_lic | awk '{print $5}' | sort | uniq)
-do
-  exp_date_cnt=`grep "FEATURE" $new_lic | awk '{print $5}' | grep -c ${exp_date}`
-  echo "  $exp_date : ${exp_date_cnt} FEATURE lines"
-done
-
 # Report Feature Lines Version Number in New Licence
 echo ""
 echo "Version Numbers present in new licence: $new_lic"
@@ -125,6 +116,38 @@ do
   echo "  $version : ${version_num} FEATURE lines"
 done
 
+# Report Feature Lines Expiry Dates in New Licence
+echo ""
+echo "Expiry dates present in new licence: $new_lic"
+for exp_date in $(grep "FEATURE" $new_lic | awk '{print $5}' | sort | uniq)
+do
+  exp_date_cnt=`grep "FEATURE" $new_lic | awk '{print $5}' | grep -c ${exp_date}`
+  echo "  $exp_date : ${exp_date_cnt} FEATURE lines"
+done
+
+# Report Number of Seats in New Licence
+seat_cnt=0
+echo ""
+echo "Number of Seats per FEATURE present in new licence: $new_lic"
+for feature in $(grep "FEATURE" $new_lic | awk '{print $2}' | sort | uniq)
+do
+  old_seat_exists=`grep -c "FEATURE ${feature}" $old_lic`
+  old_seats=`grep "FEATURE ${feature}" $old_lic | awk '{print $6}' | uniq`
+  new_seats=`grep "FEATURE ${feature}" $new_lic | awk '{print $6}' | uniq`
+  if [[ ${old_seat_exists} -ne 0 ]] 
+  then 
+    if [[ ${old_seats} -ne ${new_seats} ]]
+    then
+      seat_cnt=${seat_cnt}+1;
+      echo "  WARNING: New Licence has different number of seats (${new_seats}) compared to old licence (${old_seats}) : ${feature}"
+      if [[ ${seat_cnt} -eq 10 ]]
+      then
+        echo "  WARNING: Too many seat count differences. Skipping..."
+        break
+      fi
+    fi
+  fi
+done
 
 # Clean Up
 rm -rf $tmp_dir
