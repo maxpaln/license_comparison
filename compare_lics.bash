@@ -127,15 +127,18 @@ done
 
 # Report Number of Seats in New Licence
 seat_cnt=0
+new_seats=0
 echo ""
 echo "Number of Seats per FEATURE present in new licence: $new_lic"
-for feature in $(grep "FEATURE" $new_lic | awk '{print $2}' | sort | uniq)
+for new_lic_feature in $(fgrep "FEATURE" $new_lic | awk '{print $2}' | sort | uniq)
 do
-  old_seat_exists=`grep -c "FEATURE ${feature}" $old_lic`
-  old_seats=`grep "FEATURE ${feature}" $old_lic | awk '{print $6}' | uniq`
-  new_seats=`grep "FEATURE ${feature}" $new_lic | awk '{print $6}' | uniq`
+  echo "FEATURE: ${new_lic_feature}"
+  old_seat_exists=`fgrep -c "FEATURE ${new_lic_feature}" $old_lic`
   if [[ ${old_seat_exists} -ne 0 ]] 
   then 
+    old_seats=`fgrep "FEATURE ${new_lic_feature}" $old_lic | awk '{print $6}' | uniq`
+    new_seats=`fgrep "FEATURE ${new_lic_feature}" $new_lic | awk '{print $6}' | uniq`
+
     if [[ ${old_seats} -ne ${new_seats} ]]
     then
       seat_cnt=${seat_cnt}+1;
@@ -148,6 +151,11 @@ do
     fi
   fi
 done
+
+if [[ ${seat_cnt} -eq 0 ]]
+then
+  echo "  ALL Features have ${new_seats} seats"
+fi
 
 # Clean Up
 rm -rf $tmp_dir
