@@ -142,7 +142,7 @@ do
     if [[ ${old_seats} -ne ${new_seats} ]]
     then
       seat_cnt=${seat_cnt}+1;
-      echo "  WARNING: New Licence has different number of seats (${new_seats}) compared to old licence (${old_seats}) : ${feature}"
+      echo "  WARNING: New Licence has different number of seats (${new_seats}) compared to old licence (${old_seats}) : ${new_lic_feature}"
       if [[ ${seat_cnt} -eq 10 ]]
       then
         echo "  WARNING: Too many seat count differences. Skipping..."
