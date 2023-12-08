@@ -24,8 +24,9 @@ new_lic="$2"
 new_lic_tmp="$2.cmp"
 tmp_dir="lic_compare_tmp"
 
-echo $old_lic
-echo $new_lic
+echo "Comparing..."
+echo "  Old License: ${old_lic}"
+echo "  New License: ${new_lic}"
 
 # Check if temp dir exists - cleanup or create...
 if [[ -d "$tmp_dir" ]]
