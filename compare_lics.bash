@@ -23,6 +23,7 @@ old_lic_tmp="$1.cmp"
 new_lic="$2"
 new_lic_tmp="$2.cmp"
 tmp_dir="lic_compare_tmp"
+perp_ip_expiry="30-dec-2100"
 
 echo "Comparing..."
 echo "  Old License: ${old_lic}"
@@ -111,34 +112,51 @@ fi
 # Report Feature Lines Version Number in New Licence
 echo ""
 echo "Version Numbers present in new licence: $new_lic"
-for version in $(grep "FEATURE" $new_lic | awk '{print $4}' | sort | uniq)
+for version in $(fgrep "FEATURE" $new_lic | awk '{print $4}' | sort | uniq)
 do
-  version_num=`grep "FEATURE" $new_lic | awk '{print $4}' | grep -c ${version}`
+  version_num=`fgrep -m 1 "FEATURE" $new_lic | awk '{print $4}' | grep -c ${version}`
   echo "  $version : ${version_num} FEATURE lines"
 done
 
 # Report Feature Lines Expiry Dates in New Licence
 echo ""
 echo "Expiry dates present in new licence: $new_lic"
-for exp_date in $(grep "FEATURE" $new_lic | awk '{print $5}' | sort | uniq)
+for exp_date in $(fgrep "FEATURE" $new_lic | awk '{print $5}' | sort | uniq)
 do
-  exp_date_cnt=`grep "FEATURE" $new_lic | awk '{print $5}' | grep -c ${exp_date}`
+  exp_date_cnt=`fgrep -m 1 "FEATURE" $new_lic | awk '{print $5}' | grep -c ${exp_date}`
   echo "  $exp_date : ${exp_date_cnt} FEATURE lines"
+done
+
+# Check for Perpetual FEATURE lines in original have been carried over to New License
+echo ""
+for exp_date in $(fgrep "FEATURE" $old_lic | awk '{print $2"#"$5}' | sort | uniq)
+do
+  if [[ ${exp_date} =~ .*"#${perp_ip_expiry}" ]]
+  then
+    perp_feature=$(echo ${exp_date} | cut -d'#' -f 1)
+    new_exp_date=`fgrep -m 1 "FEATURE ${perp_feature}" ${new_lic} | cut -d' ' -f 5`
+    
+    if [[ ${new_exp_date} -ne ${perp_ip_expiry} ]]
+    then
+      echo "ERROR : New license has incorrect expiry date (${new_exp_date}) for perpetual FEATURE : ${perp_feature} "
+    fi
+  fi
 done
 
 # Report Number of Seats in New Licence
 seat_cnt=0
 new_seats=0
 echo ""
+# TODO - try improving performance by capturing multiple fields in each fgrep return as above for perpetual expiry
 echo "Number of Seats per FEATURE present in new licence: $new_lic"
 for new_lic_feature in $(fgrep "FEATURE" $new_lic | awk '{print $2}' | sort | uniq)
 do
   echo "FEATURE: ${new_lic_feature}"
-  old_seat_exists=`fgrep -c "FEATURE ${new_lic_feature}" $old_lic`
+  old_seat_exists=`fgrep -m 1 -c "FEATURE ${new_lic_feature}" $old_lic`
   if [[ ${old_seat_exists} -ne 0 ]] 
   then 
-    old_seats=`fgrep "FEATURE ${new_lic_feature}" $old_lic | awk '{print $6}' | uniq`
-    new_seats=`fgrep "FEATURE ${new_lic_feature}" $new_lic | awk '{print $6}' | uniq`
+    old_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $old_lic | cut -d' ' -f 6 | uniq`
+    new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
 
     if [[ ${old_seats} -ne ${new_seats} ]]
     then
