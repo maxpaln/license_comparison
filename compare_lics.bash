@@ -114,7 +114,7 @@ echo ""
 echo "Version Numbers present in new licence: $new_lic"
 for version in $(fgrep "FEATURE" $new_lic | awk '{print $4}' | sort | uniq)
 do
-  version_num=`fgrep -m 1 "FEATURE" $new_lic | awk '{print $4}' | grep -c ${version}`
+  version_num=`fgrep "FEATURE" $new_lic | awk '{print $4}' | grep -c ${version}`
   echo "  $version : ${version_num} FEATURE lines"
 done
 
@@ -123,7 +123,7 @@ echo ""
 echo "Expiry dates present in new licence: $new_lic"
 for exp_date in $(fgrep "FEATURE" $new_lic | awk '{print $5}' | sort | uniq)
 do
-  exp_date_cnt=`fgrep -m 1 "FEATURE" $new_lic | awk '{print $5}' | grep -c ${exp_date}`
+  exp_date_cnt=`fgrep "FEATURE" $new_lic | awk '{print $5}' | grep -c ${exp_date}`
   echo "  $exp_date : ${exp_date_cnt} FEATURE lines"
 done
 
