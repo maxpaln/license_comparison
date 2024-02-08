@@ -28,6 +28,7 @@ perp_ip_expiry="30-dec-2100"
 echo "Comparing..."
 echo "  Old License: ${old_lic}"
 echo "  New License: ${new_lic}"
+echo ""
 
 # Check if temp dir exists - cleanup or create...
 if [[ -d "$tmp_dir" ]]
@@ -43,6 +44,29 @@ fi
 
 grep "FEATURE" $old_lic | awk '{print $2}' | sort | uniq > $tmp_dir/$old_lic_tmp
 grep "FEATURE" $new_lic | awk '{print $2}' | sort | uniq > $tmp_dir/$new_lic_tmp
+
+old_server_num=`fgrep -c "SERVER" $old_lic`
+new_server_num=`fgrep -c "SERVER" $new_lic`
+
+# Summarise SERVER Information
+if [[ ${old_server_num} -eq 0 ]]
+then
+  echo "*******************************************************************************"
+  echo "WARNING: Old Licence has no SERVER information. Unable to validate new Licence."
+  echo "*******************************************************************************"
+else
+  if [[ ${new_server_num} -ne ${old_server_num} ]]
+  then
+    echo "***************************************************************************"
+    echo "WARNING: Old Licence and New Licence have different number of SERVER lines."
+    echo "***************************************************************************"
+  else
+    echo "**********************"
+    echo "Number of SERVERs: ${new_server_num}"
+    echo "**********************"
+  fi
+fi
+
 
 # Summarise Floating / Node locked and Expiry
 if [[ `grep -c DAEMON $old_lic` -eq 0 ]]
@@ -149,25 +173,30 @@ new_seats=0
 echo ""
 # TODO - try improving performance by capturing multiple fields in each fgrep return as above for perpetual expiry
 echo "Number of Seats per FEATURE present in new licence: $new_lic"
+echo " Format : Seats : <# New Seats> (<# Old_Seats>) : <Feature Name>"
 for new_lic_feature in $(fgrep "FEATURE" $new_lic | awk '{print $2}' | sort | uniq)
 do
-  echo "FEATURE: ${new_lic_feature}"
   old_seat_exists=`fgrep -m 1 -c "FEATURE ${new_lic_feature}" $old_lic`
   if [[ ${old_seat_exists} -ne 0 ]] 
   then 
     old_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $old_lic | cut -d' ' -f 6 | uniq`
     new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
 
-    if [[ ${old_seats} -ne ${new_seats} ]]
+    if [[ ${new_seats} -lt ${old_seats} ]]
     then
       seat_cnt=${seat_cnt}+1;
-      echo "  WARNING: New Licence has different number of seats (${new_seats}) compared to old licence (${old_seats}) : ${new_lic_feature}"
+      echo "  WARNING: Seats: ${new_seats} (${old_seats}) : ${new_lic_feature} :: New Licence has less seats than old licence"
       if [[ ${seat_cnt} -eq 10 ]]
       then
         echo "  WARNING: Too many seat count differences. Skipping..."
         break
       fi
+    else
+      echo "Seats: ${new_seats} (${old_seats}) : ${new_lic_feature}"
     fi
+  else
+    new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
+    echo "Seats: ${new_seats} (0) : ${new_lic_feature}"
   fi
 done
 
