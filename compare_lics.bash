@@ -45,8 +45,8 @@ fi
 grep "FEATURE" $old_lic | awk '{print $2}' | sort | uniq > $tmp_dir/$old_lic_tmp
 grep "FEATURE" $new_lic | awk '{print $2}' | sort | uniq > $tmp_dir/$new_lic_tmp
 
-old_server_num=`fgrep -c "SERVER" $old_lic`
-new_server_num=`fgrep -c "SERVER" $new_lic`
+old_server_num=`grep -c "^SERVER" $old_lic`
+new_server_num=`grep -c "^SERVER" $new_lic`
 
 # Summarise SERVER Information
 if [[ ${old_server_num} -eq 0 ]]
