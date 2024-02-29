@@ -51,9 +51,9 @@ new_server_num=`grep -c "^SERVER" $new_lic`
 # Summarise SERVER Information
 if [[ ${old_server_num} -eq 0 ]]
 then
-  echo "*******************************************************************************"
-  echo "WARNING: Old Licence has no SERVER information. Unable to validate new Licence."
-  echo "*******************************************************************************"
+  echo "*********************************************************************************************************************"
+  echo "WARNING: Old Licence has no SERVER information. Unable to validate if new Licence has correct number of SERVER Lines."
+  echo "*********************************************************************************************************************"
 else
   if [[ ${new_server_num} -ne ${old_server_num} ]]
   then
@@ -67,28 +67,29 @@ else
   fi
 fi
 
+# TODO : Check MAC address
 
 # Summarise Floating / Node locked and Expiry
-if [[ `grep -c DAEMON $old_lic` -eq 0 ]]
+if [[ `grep -c "DAEMON lattice" $old_lic` -eq 0 ]]
 then
-  if [[ `grep -c DAEMON $new_lic` -ne 0 ]]
+  if [[ `grep -c "DAEMON lattice" $new_lic` -ne 0 ]]
   then
-    echo "***********************************************************"
-    echo "ERROR: New Licence is Floating. Old licence was Node Locked"
-    echo "***********************************************************"
+    echo "******************************************************************************************"
+    echo "WARNING: Old licence was Node Locked. New Licence has Floating seats for Lattice FEATURES."
+    echo "******************************************************************************************"
   fi
 else
   if [[ `grep -c "DAEMON lattice" $new_lic` -ne 1 ]]
   then
-    echo "***********************************************************"
-    echo "ERROR: Old licence was Floating. New licence is missing Floating licence for Lattice FEATUREs"
-    echo "***********************************************************"
+    echo "*********************************************************************************************"
+    echo "WARNING: Old licence was Floating. New licence is missing Floating licence for Lattice FEATUREs"
+    echo "*********************************************************************************************"
   fi
   if [[ `grep -c "DAEMON mgcld" $new_lic` -ne 1 ]]
   then
-    echo "***********************************************************"
+    echo "**********************************************************************************************"
     echo "ERROR: Old licence was Floating. New licence is missing Floating licence for Modelsim FEATUREs"
-    echo "***********************************************************"
+    echo "**********************************************************************************************"
   fi
 fi
 
@@ -167,42 +168,45 @@ do
   fi
 done
 
-# Report Number of Seats in New Licence
-seat_cnt=0
-new_seats=0
-echo ""
-# TODO - try improving performance by capturing multiple fields in each fgrep return as above for perpetual expiry
-echo "Number of Seats per FEATURE present in new licence: $new_lic"
-echo " Format : Seats : <# New Seats> (<# Old_Seats>) : <Feature Name>"
-for new_lic_feature in $(fgrep "FEATURE" $new_lic | awk '{print $2}' | sort | uniq)
-do
-  old_seat_exists=`fgrep -m 1 -c "FEATURE ${new_lic_feature}" $old_lic`
-  if [[ ${old_seat_exists} -ne 0 ]] 
-  then 
-    old_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $old_lic | cut -d' ' -f 6 | uniq`
-    new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
+if [[ ${new_server_num} -gt 0 ]]
+then
+  # Report Number of Seats in New Licence
+  seat_cnt=0
+  new_seats=0
+  echo ""
+  # TODO - try improving performance by capturing multiple fields in each fgrep return as above for perpetual expiry
+  echo "Number of Seats per FEATURE present in new licence: $new_lic"
+  echo " Format : Seats : <# New Seats> (<# Old_Seats>) : <Feature Name>"
+  for new_lic_feature in $(fgrep "FEATURE" $new_lic | awk '{print $2}' | sort | uniq)
+  do
+    old_seat_exists=`fgrep -m 1 -c "FEATURE ${new_lic_feature}" $old_lic`
+    if [[ ${old_seat_exists} -ne 0 ]] 
+    then 
+      old_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $old_lic | cut -d' ' -f 6 | uniq`
+      new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
 
-    if [[ ${new_seats} -lt ${old_seats} ]]
-    then
-      seat_cnt=${seat_cnt}+1;
-      echo "  WARNING: Seats: ${new_seats} (${old_seats}) : ${new_lic_feature} :: New Licence has less seats than old licence"
-      if [[ ${seat_cnt} -eq 10 ]]
+      if [[ ${new_seats} -lt ${old_seats} ]]
       then
-        echo "  WARNING: Too many seat count differences. Skipping..."
-        break
+        seat_cnt=${seat_cnt}+1;
+        echo "  WARNING: Seats: ${new_seats} (${old_seats}) : ${new_lic_feature} :: New Licence has less seats than old licence"
+        if [[ ${seat_cnt} -eq 10 ]]
+        then
+          echo "  WARNING: Too many seat count differences. Skipping..."
+          break
+        fi
+      else
+        echo "Seats: ${new_seats} (${old_seats}) : ${new_lic_feature}"
       fi
     else
-      echo "Seats: ${new_seats} (${old_seats}) : ${new_lic_feature}"
+      new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
+      echo "Seats: ${new_seats} (0) : ${new_lic_feature}"
     fi
-  else
-    new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
-    echo "Seats: ${new_seats} (0) : ${new_lic_feature}"
-  fi
-done
+  done
 
-if [[ ${seat_cnt} -eq 0 ]]
-then
-  echo "  ALL Features have ${new_seats} seats"
+  if [[ ${seat_cnt} -eq 0 ]]
+  then
+    echo "  ALL Features have ${new_seats} seats"
+  fi
 fi
 
 # Clean Up
