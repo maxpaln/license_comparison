@@ -179,33 +179,42 @@ then
   echo " Format : Seats : <# New Seats> (<# Old_Seats>) : <Feature Name>"
   for new_lic_feature in $(fgrep "FEATURE" $new_lic | awk '{print $2}' | sort | uniq)
   do
-    old_seat_exists=`fgrep -m 1 -c "FEATURE ${new_lic_feature}" $old_lic`
-    if [[ ${old_seat_exists} -ne 0 ]] 
+    old_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $old_lic | cut -d' ' -f 6 | uniq`
+    new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
+
+    #if [[ ${old_seat_exists} -ne 0 ]] 
+    if ! [[ -z ${old_seats} ]] 
     then 
-      old_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $old_lic | cut -d' ' -f 6 | uniq`
-      new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
+      #old_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $old_lic | cut -d' ' -f 6 | uniq`
+      #new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
 
       if [[ ${new_seats} -lt ${old_seats} ]]
       then
         seat_cnt=${seat_cnt}+1;
         echo "  WARNING: Seats: ${new_seats} (${old_seats}) : ${new_lic_feature} :: New Licence has less seats than old licence"
-        if [[ ${seat_cnt} -eq 10 ]]
-        then
-          echo "  WARNING: Too many seat count differences. Skipping..."
-          break
-        fi
       else
-        echo "Seats: ${new_seats} (${old_seats}) : ${new_lic_feature}"
+        if [[ ${new_seats} -gt ${old_seats} ]]
+        then
+          seat_cnt=${seat_cnt}+1;
+          echo "NOTE: Seats: ${new_seats} (${old_seats}) : ${new_lic_feature} :: New License has more seats than old licence"
+        else
+          echo "Seats: ${new_seats} (${old_seats}) : ${new_lic_feature}"
+        fi
       fi
     else
-      new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
-      echo "Seats: ${new_seats} (0) : ${new_lic_feature}"
+      #new_seats=`fgrep -m 1 "FEATURE ${new_lic_feature}" $new_lic | cut -d' ' -f 6 | uniq`
+      echo "NOTE: Seats: ${new_seats} (0) : ${new_lic_feature} :: New License has added this FEATURE"
+    fi
+    if [[ ${seat_cnt} -eq 10 ]]
+    then
+      echo "  WARNING: Too many seat count differences. Skipping..."
+      break
     fi
   done
 
   if [[ ${seat_cnt} -eq 0 ]]
   then
-    echo "  ALL Features have ${new_seats} seats"
+    echo "  ALL FEATURE license in new licence file have ${new_seats} seats"
   fi
 fi
 
