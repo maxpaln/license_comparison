@@ -161,7 +161,7 @@ do
     perp_feature=$(echo ${exp_date} | cut -d'#' -f 1)
     new_exp_date=`fgrep -m 1 "FEATURE ${perp_feature}" ${new_lic} | cut -d' ' -f 5`
     
-    if [[ ${new_exp_date} -ne ${perp_ip_expiry} ]]
+    if [ "${new_exp_date}" != "${perp_ip_expiry}" ]
     then
       echo "ERROR : New license has incorrect expiry date (${new_exp_date}) for perpetual FEATURE : ${perp_feature} "
     fi
