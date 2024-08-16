@@ -1,10 +1,12 @@
 #!/usr/bin/bash
 
+echo "Command name is ${0}"
+
 # Sanity Check Arguments
 if [ $# -lt 2 ]
   then
     echo "Error: Incorrect Usage"
-    echo "  lic_compare.bash <old_licence> <new_licence>"
+    echo "  ${0} <old_licence> <new_licence>"
 
     exit 1
 else
