@@ -14,3 +14,4 @@
 
 # Include Script Files
 !compare_lics.bash
+!license_update.bash
